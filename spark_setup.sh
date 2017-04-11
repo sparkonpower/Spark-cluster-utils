@@ -24,7 +24,7 @@ else
     SERVERS=`echo ''$MASTER'%'$SLAVES''`
 fi
 
-SPARK_DIR=`ls -ltr ${WORKDIR}/spark-*-SNAPSHOT-bin-hadoop-*.tgz | tail -1 | awk '{print $9}' | cut -c1-35` 2>>/dev/null
+SPARK_DIR=`ls -ltr ${WORKDIR}/spark-*-SNAPSHOT-bin-hadoop-*.tgz | tail -1 | awk '{print $9}' | cut -c1-50` 2>>/dev/null
 SPARK_FILE=`ls -ltr ${WORKDIR}/spark-*-SNAPSHOT-bin-hadoop-*.tgz | tail -1 | awk '{print $9}'` 2>>/dev/null
 if [ $? -ne 0  ];
 then
@@ -41,15 +41,15 @@ do
     if [ $i != $MASTER ]
 	then
 	    echo 'Deleting old spark file and copying new Spark setup file on '$i'' | tee -a $log
-		ssh $i "rm ${WORKDIR}/${SPARK_FILE}" &>>/dev/null
-	    scp ${WORKDIR}/${SPARK_FILE} @$i:${WORKDIR} | tee -a $log
+		ssh $i "rm ${SPARK_FILE}" &>>/dev/null
+	    scp ${SPARK_FILE} @$i:${WORKDIR} | tee -a $log
 	fi
 	
-	ssh $i '[ -d '${WORKDIR}/${SPARK_DIR}' ]' &>>/dev/null
+	ssh $i '[ -d '${SPARK_DIR}' ]' &>>/dev/null
 	if [ $? -eq 0 ]
 		then 
 		echo 'Deleting existing spark folder '$SPARK_DIR'  from '$i' '| tee -a $log
-		ssh $i "rm -rf ${WORKDIR}/${SPARK_DIR}" &>>/dev/null
+		ssh $i "rm -rf ${SPARK_DIR}" &>>/dev/null
 	fi
 	
 	echo 'Unzipping Spark setup file on '$i'' | tee -a $log
@@ -57,7 +57,7 @@ do
 	
 	echo 'Updating .bashrc file on '$i' with Spark variables '	
 	echo '#StartSparkEnv' >tmp_b
-	echo "export SPARK_HOME="${WORKDIR}"/${SPARK_DIR}" >>tmp_b
+	echo "export SPARK_HOME="${SPARK_DIR}"" >>tmp_b
 	echo "export PATH=\$SPARK_HOME/bin:\$PATH">>tmp_b
 	echo '#StopSparkEnv'>>tmp_b
 		
@@ -82,7 +82,7 @@ rm -rf tmp_b
 
 
 ##Exporting spark variables for current script session on master
-export SPARK_HOME=${WORKDIR}/${SPARK_DIR}
+export SPARK_HOME=${SPARK_DIR}
 export PATH=$SPARK_HOME/bin:$PATH
 
 
@@ -90,9 +90,9 @@ export PATH=$SPARK_HOME/bin:$PATH
 source ${HOME}/.bashrc
 echo 'Updating Slave file for Spark setup'| tee -a $log
 
-cp ${SPARK_DIR}/conf/slaves.template ${SPARK_DIR}/conf/slaves
-sed -i 's|localhost||g' ${SPARK_DIR}/conf/slaves
-cat ${CURDIR}/conf/slaves>>${SPARK_DIR}/conf/slaves
+cp ${SPARK_HOME}/conf/slaves.template ${SPARK_HOME}/conf/slaves
+sed -i 's|localhost||g' ${SPARK_HOME}/conf/slaves
+cat ${HADOOP_HOME}/etc/hadoop/slaves>>${SPARK_HOME}/conf/slaves
 
 echo -e "Configuring Spark history server" | tee -a $log
 
