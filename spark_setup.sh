@@ -15,7 +15,7 @@ echo -e | tee -a $log
 MASTER=$1
 SLAVES=`echo $2 | tr "," "%"`
 #Logic to create server list 
-echo $SLAVES | tr "," "\n" | grep $MASTER &>>/dev/null
+echo $SLAVES | tr "%" "\n" | grep $MASTER &>>/dev/null
 if [ $? -eq 0 ]
 then
     #if master is also used as data machine 
@@ -23,6 +23,8 @@ then
 else
     SERVERS=`echo ''$MASTER'%'$SLAVES''`
 fi
+##backing the hive-site.xml file
+cp ${SPARK_HOME}/conf/hive-site.xml ${WORKDIR}
 
 SPARK_DIR=`ls -ltr ${WORKDIR}/spark-*-SNAPSHOT-bin-hadoop-*.tgz | tail -1 | awk '{print $9}' | cut -c1-50` 2>>/dev/null
 SPARK_FILE=`ls -ltr ${WORKDIR}/spark-*-SNAPSHOT-bin-hadoop-*.tgz | tail -1 | awk '{print $9}'` 2>>/dev/null
@@ -116,16 +118,18 @@ else
     echo "#StopSparkconf">> $SPARK_HOME/conf/spark-defaults.conf
 fi
 
-#CP $SPARK_HOME/conf/spark-defaults.conf $SPARK_HOME/conf &>/dev/null
-#setting spark and hadoop log properties to display only errors
+#setting spark log properties to display only errors
 cp $SPARK_HOME/conf/log4j.properties.template $SPARK_HOME/conf/log4j.properties
 sed -i 's/^log4j.rootCategory.*/log4j.rootCategory=ERROR, console/g' $SPARK_HOME/conf/log4j.properties
-#CP $SPARK_HOME/conf/log4j.properties $SPARK_HOME/conf &>/dev/null
+
+##Restoring hive-site.xml in conf dir under SPARK_HOME
+cp ${WORKDIR}/hive-site.xml ${SPARK_HOME}/conf
 
 for i in `echo $SERVERS |cut -d "=" -f2 | tr "%" "\n" | cut -d "," -f1`
 do
 	scp $SPARK_HOME/conf/spark-defaults.conf @$i:$SPARK_HOME/conf | tee -a $log
 	scp $SPARK_HOME/conf/log4j.properties @$i:$SPARK_HOME/conf | tee -a $log
+	scp $SPARK_HOME/conf/hive-site.xml @$i:$SPARK_HOME/conf | tee -a $log
 done
 
 echo -e "Spark installation done..!!\n" | tee -a $log
