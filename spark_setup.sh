@@ -13,7 +13,7 @@ fi
 log=`pwd`/logs/spark_setup_$current_time.log
 echo -e | tee -a $log
 MASTER=$1
-SLAVES=$2
+SLAVES=`echo $2 | tr "," "%"`
 #Logic to create server list 
 echo $SLAVES | tr "," "\n" | grep $MASTER &>>/dev/null
 if [ $? -eq 0 ]
