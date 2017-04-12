@@ -130,4 +130,3 @@ done
 
 echo -e "Spark installation done..!!\n" | tee -a $log
 echo -e 
-echo "SPARK history server : http://"$MASTER":"$SPARKHISTORY_HTTP_ADDRESS"" | tee -a $log
