@@ -31,8 +31,8 @@ echo "Backing up the config files hive-site.xml and spark-defaults.conf"
 cp ${SPARK_HOME}/conf/hive-site.xml ${WORKDIR}
 cp ${SPARK_HOME}/conf/spark-defaults.conf ${WORKDIR}
 
-SPARK_DIR=`ls -ltr ${WORKDIR}/spark-*-SNAPSHOT-bin-hadoop-*.tgz | tail -1 | awk '{print $9}' | cut -c1-50` 
-SPARK_FILE=`ls -ltr ${WORKDIR}/spark-*-SNAPSHOT-bin-hadoop-*.tgz | tail -1 | awk '{print $9}'` 
+SPARK_DIR=`ls -ltr ${WORKDIR}/spark-*-bin-hadoop-*.tgz | tail -1 | awk '{print $9}' | sed 's/.tgz//'` 
+SPARK_FILE=`ls -ltr ${WORKDIR}/spark-*-bin-hadoop-*.tgz | tail -1 | awk '{print $9}'` 
 if [ $? -ne 0  ];
 then
     echo "Spark tgz file does not exist. Please rerun the spark validation job to generate again." | tee -a $log
